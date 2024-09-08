@@ -207,6 +207,7 @@
         <button id="addMarkupBtn" onclick="enableAddMarkup()">Add Markups</button>
         <button id="addArrowsBtn" onclick="enableAddArrows()">Add Arrows</button>
         <button id="addTextBoxBtn" onclick="enableAddTextBox()">Add Text-Box</button>
+        <button id="addDimensionBtn" onclick="enableAddDimension()">Add Dimension</button>
         <button id="removeAllMarkupsBtn" onclick="removeAllMarkups()">Remove All Markups</button>
         <button id="undoBtn" onclick="undo()">Undo</button>
       </div>
@@ -218,311 +219,396 @@
     <!-- Button to copy the image -->
     <div id="imageButtonsContainer">
       <button id="copyImageBtn" onclick="copyImageToClipboard()">Copy Image</button>
+
     </div>
     <p style="text-align:center;"> Copyright © 2024, Kartik Jadhav, All rights reserved.</p>
   </div>
 
-  <script>
-    const canvas = document.getElementById('imageCanvas');
-    const ctx = canvas.getContext('2d');
-    let uploadedImage = null;
-    const circles = [];
-    const arrows = [];
-    const textBoxes = [];
-    let addMode = true;
-    let arrowMode = false;
-    let textBoxMode = false;
-    let startPoint = null;
-    let currentTextBox = null;
-    const undoStack = [];
-    const MAX_UNDO_STACK = 100;
-    let circleCount = 1;
+<script>
+const canvas = document.getElementById('imageCanvas');
+const ctx = canvas.getContext('2d');
+let uploadedImage = null;
+const circles = [];
+const arrows = [];
+const textBoxes = [];
+const dimensions = [];
+let addMode = true;
+let arrowMode = false;
+let textBoxMode = false;
+let dimensionMode = false; // For dimensions
+let startPoint = null;
+let tempEndPoint = null; // Temporary end point for live feedback
+const undoStack = [];
+const MAX_UNDO_STACK = 100;
+let circleCount = 1;
 
-    function setCanvasSize(img) {
-      const aspectRatio = img.width / img.height;
-      const maxWidth = 800;
-      const maxHeight = 600;
+function setCanvasSize(img) {
+  const aspectRatio = img.width / img.height;
+  const maxWidth = 800;
+  const maxHeight = 600;
 
-      if (img.width > img.height) {
-        canvas.width = Math.min(maxWidth, img.width);
-        canvas.height = canvas.width / aspectRatio;
-      } else {
-        canvas.height = Math.min(maxHeight, img.height);
-        canvas.width = canvas.height * aspectRatio;
-      }
-    }
+  if (img.width > img.height) {
+    canvas.width = Math.min(maxWidth, img.width);
+    canvas.height = canvas.width / aspectRatio;
+  } else {
+    canvas.height = Math.min(maxHeight, img.height);
+    canvas.width = canvas.height * aspectRatio;
+  }
+}
 
-    document.getElementById('imageUpload').addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      const img = new Image();
+document.getElementById('imageUpload').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  const img = new Image();
 
-      reader.onload = function(e) {
-        img.src = e.target.result;
-      };
+  reader.onload = function(e) {
+    img.src = e.target.result;
+  };
 
-      img.onload = function() {
-        uploadedImage = img;
-        setCanvasSize(img);
-        drawImageWithMarkup();
-      };
+  img.onload = function() {
+    uploadedImage = img;
+    setCanvasSize(img);
+    drawImageWithMarkup();
+  };
 
-      reader.readAsDataURL(file);
+  reader.readAsDataURL(file);
+});
+
+function addTextToImage() {
+  addStateToUndoStack();
+  drawImageWithMarkup();
+}
+
+function enableAddMarkup() {
+  addMode = true;
+  arrowMode = false;
+  textBoxMode = false;
+  dimensionMode = false;
+  highlightButton('addMarkupBtn');
+}
+
+function enableAddArrows() {
+  addMode = false;
+  arrowMode = true;
+  textBoxMode = false;
+  dimensionMode = false;
+  highlightButton('addArrowsBtn');
+}
+
+function enableAddTextBox() {
+  addMode = false;
+  arrowMode = false;
+  textBoxMode = true;
+  dimensionMode = false;
+  highlightButton('addTextBoxBtn');
+}
+
+function enableAddDimension() {
+  addMode = false;
+  arrowMode = false;
+  textBoxMode = false;
+  dimensionMode = true; // Activate dimension mode
+  highlightButton('addDimensionBtn');
+}
+
+function removeAllMarkups() {
+  addStateToUndoStack();
+  circles.length = 0;
+  arrows.length = 0;
+  textBoxes.length = 0;
+  dimensions.length = 0;
+  drawImageWithMarkup();
+}
+
+function highlightButton(buttonId) {
+  document.querySelectorAll('.controls button').forEach(button => {
+    button.classList.remove('active');
+  });
+  document.getElementById(buttonId).classList.add('active');
+}
+
+function copyImageToClipboard() {
+  canvas.toBlob(blob => {
+    const item = new ClipboardItem({ 'image/png': blob });
+    navigator.clipboard.write([item]).then(() => {
+      alert('Image copied to clipboard!');
     });
+  });
+}
 
-    function addTextToImage() {
+function drawImageWithMarkup() {
+  // Clear canvas and fill with white background
+  ctx.fillStyle = 'white'; // Set the background color to white
+  ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill the entire canvas
+
+  if (uploadedImage) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+  }
+
+  // Draw circles
+  circles.forEach((circle, index) => {
+    ctx.beginPath();
+    ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(circle.x, circle.y, circle.radius / 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+    ctx.font = '12px Arial';
+    ctx.fillStyle = 'blue';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(index + 1, circle.x + circle.radius + 10, circle.y);
+  });
+
+  // Draw arrows
+  arrows.forEach(arrow => drawArrow(arrow.start, arrow.end));
+
+  // Draw text boxes
+  textBoxes.forEach(box => {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(box.x - 3, box.y - 20, box.width + 5, 30);
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '12px Arial';
+    ctx.fillText(box.text, box.x + box.width / 2, box.y - 5);
+  });
+
+  // Draw dimensions
+  dimensions.forEach(dimension => drawDimension(dimension.start, dimension.end, dimension.text));
+
+  const description = document.getElementById('description').value;
+  if (description) {
+    ctx.fillStyle = 'black';
+    const textX = canvas.width / 2;
+    ctx.font = '12px Arial';
+    const lineHeight = 16;
+    const lines = description.split('\n');
+    const maxLineWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
+    const textHeight = lineHeight * lines.length;
+    ctx.fillRect(0, canvas.height - textHeight - 10, canvas.width, textHeight + 10);
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font = '12px Arial';
+    lines.forEach((line, index) => {
+      ctx.fillText(line, textX, canvas.height - textHeight + (lineHeight * index));
+    });
+  }
+}
+
+function drawArrow(start, end) {
+  const headLength = 10;
+  const angle = Math.atan2(end.y - start.y, end.x - start.x);
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.lineTo(end.x, end.y);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'blue';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(end.x, end.y);
+  ctx.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6));
+  ctx.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6));
+  ctx.lineTo(end.x, end.y);
+  ctx.fillStyle = 'blue';
+  ctx.fill();
+}
+
+function drawDimension(start, end, text) {
+  // Draw the dimension line
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.lineTo(end.x, end.y);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'red';
+  ctx.stroke();
+
+  // Draw open tick marks at both ends (architectural style)
+  drawOpenTick(start, end);
+  drawOpenTick(end, start);
+
+  // Draw dimension text
+  const textX = (start.x + end.x) / 2;
+  const textY = (start.y + end.y) / 2;
+  ctx.fillStyle = 'black';
+  ctx.fillRect(textX - ctx.measureText(text).width / 2 - 3, textY - 10, ctx.measureText(text).width + 6, 20);
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '12px Arial';
+  ctx.fillText(text, textX, textY);
+}
+
+function drawOpenTick(pointA, pointB) {
+  const dotRadius = 4; // Define the radius of the dot
+
+  // Draw a dot (circle) at pointA
+  ctx.beginPath();
+  ctx.arc(pointA.x, pointA.y, dotRadius, 0, 2 * Math.PI); // Draw a small circle (dot)
+  ctx.fillStyle = 'red'; // Set the dot color
+  ctx.fill();
+}
+
+function addStateToUndoStack() {
+  if (undoStack.length >= MAX_UNDO_STACK) {
+    undoStack.shift();
+  }
+  undoStack.push({ circles: [...circles], arrows: [...arrows], textBoxes: [...textBoxes], dimensions: [...dimensions] });
+}
+
+function undo() {
+  if (undoStack.length > 0) {
+    const lastState = undoStack.pop();
+    circles.length = 0;
+    arrows.length = 0;
+    textBoxes.length = 0;
+    dimensions.length = 0;
+    circles.push(...lastState.circles);
+    arrows.push(...lastState.arrows);
+    textBoxes.push(...lastState.textBoxes);
+    dimensions.push(...lastState.dimensions);
+    drawImageWithMarkup();
+  } else {
+    alert("No more actions to undo.");
+  }
+}
+
+function closeWelcomeModal() {
+  document.getElementById('welcomeModal').style.display = 'none';
+}
+
+window.addEventListener('beforeunload', function(event) {
+  event.preventDefault();
+  event.returnValue = '';
+});
+
+canvas.addEventListener('mousedown', function(event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  if (dimensionMode) {
+    startPoint = { x, y };
+    tempEndPoint = null; // Clear temporary end point
+  } else if (arrowMode) {
+    startPoint = { x, y };
+  } else if (textBoxMode) {
+    const text = prompt("Enter text for the text box:");
+    if (text === null) {
+      textBoxMode = false; // Exit text box mode if canceled
+      return;
+    }
+    addStateToUndoStack();
+    textBoxes.push({ x, y, width: ctx.measureText(text).width + 10, text });
+    drawImageWithMarkup();
+  }
+});
+
+canvas.addEventListener('mousemove', function(event) {
+  if (dimensionMode && startPoint) {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    tempEndPoint = { x, y }; // Update temporary end point for live feedback
+
+    drawImageWithMarkup(); // Redraw everything including the temporary dimension line
+
+    // Draw temporary dimension line for live feedback
+    ctx.beginPath();
+    ctx.moveTo(startPoint.x, startPoint.y);
+    ctx.lineTo(tempEndPoint.x, tempEndPoint.y);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // Light red color for live feedback
+    ctx.stroke();
+  }
+});
+
+canvas.addEventListener('mouseup', function(event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  if (dimensionMode && startPoint) {
+    // Finalize the dimension
+    const dimensionText = prompt("Enter the dimension value:");
+    if (dimensionText === null) {
+      dimensionMode = false; // Exit dimension mode if canceled
+      startPoint = null;
+      tempEndPoint = null; // Clear temporary end point
+      return;
+    }
+    addStateToUndoStack();
+    dimensions.push({ start: startPoint, end: { x, y }, text: dimensionText });
+    startPoint = null;
+    tempEndPoint = null; // Clear temporary end point
+    drawImageWithMarkup();
+  } else if (arrowMode && startPoint) {
+    addStateToUndoStack();
+    arrows.push({ start: startPoint, end: { x, y } });
+    startPoint = null;
+    drawImageWithMarkup();
+  }
+});
+
+canvas.addEventListener('click', function(event) {
+  if (dimensionMode || arrowMode || textBoxMode) return; // Prevent circle drawing in other modes
+
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  const radius = 20;
+
+  if (addMode) {
+    addStateToUndoStack();
+    circles.push({ x, y, radius });
+    circleCount++;
+  } else {
+    const index = circles.findIndex(circle => {
+      const dx = circle.x - x;
+      const dy = circle.y - y;
+      return Math.sqrt(dx * dx + dy * dy) < radius;
+    });
+    if (index !== -1) {
       addStateToUndoStack();
-      drawImageWithMarkup();
+      circles.splice(index, 1);
     }
+  }
 
-    function enableAddMarkup() {
-      addMode = true;
-      arrowMode = false;
-      textBoxMode = false;
-      highlightButton('addMarkupBtn');
-    }
+  drawImageWithMarkup();
+});
 
-    function enableAddArrows() {
-      addMode = false;
-      arrowMode = true;
-      textBoxMode = false;
-      highlightButton('addArrowsBtn');
-    }
-
-    function enableAddTextBox() {
-      addMode = false;
-      arrowMode = false;
-      textBoxMode = true;
-      highlightButton('addTextBoxBtn');
-    }
-
-    function removeAllMarkups() {
-      addStateToUndoStack();
-      circles.length = 0;
-      arrows.length = 0;
-      textBoxes.length = 0;
-      drawImageWithMarkup();
-    }
-
-    function highlightButton(buttonId) {
-      document.querySelectorAll('.controls button').forEach(button => {
-        button.classList.remove('active');
-      });
-      document.getElementById(buttonId).classList.add('active');
-    }
-
-    function copyImageToClipboard() {
-      canvas.toBlob(blob => {
-        const item = new ClipboardItem({ 'image/png': blob });
-        navigator.clipboard.write([item]).then(() => {
-          alert('Image copied to clipboard!');
+function pasteImageFromClipboard() {
+  navigator.clipboard.read().then(items => {
+    items.forEach(item => {
+      if (item.types.includes('image/png')) {
+        item.getType('image/png').then(blob => {
+          const img = new Image();
+          img.src = URL.createObjectURL(blob);
+          img.onload = function() {
+            uploadedImage = img;
+            setCanvasSize(img);
+            drawImageWithMarkup();
+          };
         });
-      });
-    }
-
-    function drawImageWithMarkup() {
-      if (uploadedImage) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
-
-        circles.forEach((circle, index) => {
-          ctx.beginPath();
-          ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
-          ctx.strokeStyle = 'red';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(circle.x, circle.y, circle.radius / 3, 0, Math.PI * 2);
-          ctx.fillStyle = 'red';
-          ctx.fill();
-
-          // Draw number beside the circle in blue
-          ctx.font = '12px Arial';
-          ctx.fillStyle = 'blue';
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(index + 1, circle.x + circle.radius + 5, circle.y);
-        });
-
-        arrows.forEach(arrow => {
-          drawArrow(arrow.start, arrow.end);
-        });
-
-        textBoxes.forEach(box => {
-          ctx.fillStyle = 'black';
-          ctx.fillRect(box.x, box.y - 20, box.width, 20);
-          ctx.fillStyle = 'white';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.font = '12px Arial';
-          ctx.fillText(box.text, box.x + (box.width / 2), box.y - 5);
-        });
-
-        const description = document.getElementById('description').value;
-        if (description) {
-          ctx.fillStyle = 'black';
-          const textX = canvas.width / 2;
-          const lineHeight = 16;
-          const lines = description.split('\n');
-          const maxLineWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
-          const textHeight = lineHeight * lines.length;
-
-          // Draw black background behind the text
-          ctx.fillRect(0, canvas.height - textHeight - 10, canvas.width, textHeight + 10);
-
-          ctx.fillStyle = 'white';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          ctx.font = '12px Arial';
-
-          lines.forEach((line, index) => {
-            ctx.fillText(line, textX, canvas.height - textHeight + (lineHeight * index));
-          });
-        }
-      }
-    }
-
-    function drawArrow(start, end) {
-      const headLength = 10;
-      const angle = Math.atan2(end.y - start.y, end.x - start.x);
-      ctx.beginPath();
-      ctx.moveTo(start.x, start.y);
-      ctx.lineTo(end.x, end.y);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = 'blue';
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(end.x, end.y);
-      ctx.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6));
-      ctx.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6));
-      ctx.lineTo(end.x, end.y);
-      ctx.fillStyle = 'blue';
-      ctx.fill();
-    }
-
-    function addStateToUndoStack() {
-      if (undoStack.length >= MAX_UNDO_STACK) {
-        undoStack.shift();
-      }
-      undoStack.push({ circles: [...circles], arrows: [...arrows], textBoxes: [...textBoxes] });
-    }
-
-    function undo() {
-      if (undoStack.length > 0) {
-        const lastState = undoStack.pop();
-        circles.length = 0;
-        arrows.length = 0;
-        textBoxes.length = 0;
-        circles.push(...lastState.circles);
-        arrows.push(...lastState.arrows);
-        textBoxes.push(...lastState.textBoxes);
-        drawImageWithMarkup();
-      } else {
-        alert("No more actions to undo.");
-      }
-    }
-
-    function closeWelcomeModal() {
-      document.getElementById('welcomeModal').style.display = 'none';
-    }
-
-    window.addEventListener('beforeunload', function(event) {
-      event.preventDefault();
-      event.returnValue = '';
-    });
-
-    canvas.addEventListener('mousedown', function(event) {
-      if (arrowMode) {
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        startPoint = { x, y };
-      } else if (textBoxMode) {
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        const text = prompt("Enter text for the text box:");
-        if (text) {
-          addStateToUndoStack();
-          textBoxes.push({ x, y, width: ctx.measureText(text).width + 10, text });
-          drawImageWithMarkup();
-        }
       }
     });
+  });
+}
 
-    canvas.addEventListener('mousemove', function(event) {
-      if (arrowMode && startPoint) {
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+// Initialize the canvas when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+  canvas.width = 800; // Set default width
+  canvas.height = 600; // Set default height
+  drawImageWithMarkup(); // Fill canvas with white background
+});
 
-        drawImageWithMarkup();
-        ctx.beginPath();
-        ctx.moveTo(startPoint.x, startPoint.y);
-        ctx.lineTo(x, y);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'blue';
-        ctx.stroke();
-      }
-    });
+</script>
 
-    canvas.addEventListener('mouseup', function(event) {
-      if (arrowMode && startPoint) {
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
 
-        addStateToUndoStack();
-        arrows.push({ start: startPoint, end: { x, y } });
-        startPoint = null;
-        drawImageWithMarkup();
-      }
-    });
-
-    canvas.addEventListener('click', function(event) {
-      if (arrowMode || textBoxMode) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      const radius = 15;
-
-      if (addMode) {
-        addStateToUndoStack();
-        circles.push({ x, y, radius });
-        circleCount++;
-      } else {
-        const index = circles.findIndex(circle => {
-          const dx = circle.x - x;
-          const dy = circle.y - y;
-          return Math.sqrt(dx * dx + dy * dy) < radius;
-        });
-        if (index !== -1) {
-          addStateToUndoStack();
-          circles.splice(index, 1);
-        }
-      }
-
-      drawImageWithMarkup();
-    });
-
-    function pasteImageFromClipboard() {
-      navigator.clipboard.read().then(items => {
-        items.forEach(item => {
-          if (item.types.includes('image/png')) {
-            item.getType('image/png').then(blob => {
-              const img = new Image();
-              img.src = URL.createObjectURL(blob);
-              img.onload = function() {
-                uploadedImage = img;
-                setCanvasSize(img);
-                drawImageWithMarkup();
-              };
-            });
-          }
-        });
-      });
-    }
-  </script>
 </body>
 </html>

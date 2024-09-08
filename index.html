@@ -6,210 +6,209 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MarkupLite</title>
- <style>
-        body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 12px;
-    margin: 0;
-    padding: 0;
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
-}
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 12px;
+        margin: 0;
+        padding: 0;
+        background-color: #1d1d1d; /* Dark background */
+        color: #e1e1e1; /* Light text color */
+        overflow-x: hidden; /* Prevent horizontal scrolling */
+    }
 
-.container {
-    text-align: center;
-    background-color: #2d2d2d;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    max-width: 100%;
-    width: 90%; /* Reduced width for smaller screens */
-    margin: 0 auto; /* Center container */
-    overflow: auto; /* Enable scrolling if content is larger */
-}
-
-#imageCanvas {
-    border: 1px solid #444;
-    display: block;
-    margin: 10px auto;
-    cursor: crosshair;
-    background-color: #2d2d2d;
-    max-width: 100%; /* Ensure canvas scales with container */
-    height: auto; /* Maintain aspect ratio */
-}
-
-.controls {
-    margin-top: 10px;
-}
-
-.controls textarea {
-    padding: 10px;
-    font-size: 12px;
-    margin-bottom: 10px;
-    display: block;
-    width: 100%; /* Full width */
-    max-width: 400px; /* Limit width */
-    margin: 0 auto; /* Center textarea */
-    border-radius: 4px;
-    border: 1px solid #555;
-    background-color: #333;
-    color: #e0e0e0;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.controls button,
-#imageUpload,
-#pasteImageBtn {
-    padding: 10px 15px;
-    font-size: 12px;
-    cursor: pointer;
-    margin: 5px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    color: #e0e0e0;
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-    background-color: #333;
-}
-
-.controls button.active,
-.controls button:hover,
-#pasteImageBtn:hover,
-#imageUpload:hover {
-    background-color: #007bff;
-    color: #ffffff;
-    border-color: #007bff;
-}
-
-.controls .button-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-}
-
-.controls .button-group button {
-    background-color: #333;
-}
-
-#imageButtonsContainer {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-    flex-wrap: wrap;
-}
-
-#imageButtonsContainer button {
-    padding: 10px 15px;
-    margin: 5px;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    color: #fff;
-    background: linear-gradient(45deg, #ff6b6b, #ffcc6b);
-    transition: background 0.3s, transform 0.3s;
-}
-
-#imageButtonsContainer button:hover {
-    background: linear-gradient(45deg, #ff6b6b, #f9a825);
-    transform: scale(1.05);
-}
-
-#copyImageBtn {
-    background-color: #333;
-    border-color: #555;
-    color: #e0e0e0;
-}
-
-#copyImageBtn:hover {
-    background-color: #007bff;
-    color: #ffffff;
-    border-color: #007bff;
-}
-
-#welcomeModal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    color: #e0e0e0;
-    z-index: 1000;
-}
-
-#welcomeModal .modal-content {
-    background: #2d2d2d;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-}
-
-#welcomeModal button {
-    padding: 10px 20px;
-    margin: 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff;
-    color: #ffffff;
-    cursor: pointer;
-}
-
-#welcomeModal button:hover {
-    background-color: #0056b3;
-}
-
-@media (max-width: 1200px) {
     .container {
-        width: 95%;
-    }
-}
-
-@media (max-width: 900px) {
-    .controls textarea {
-        font-size: 10px;
-        padding: 8px;
-    }
-
-    .controls button {
-        padding: 8px 12px;
-        font-size: 10px;
-    }
-}
-
-@media (max-width: 600px) {
-    .controls {
-        margin-top: 5px;
-    }
-    
-    .controls button {
-        padding: 8px 12px;
-        font-size: 10px;
+        text-align: center;
+        background-color: #2f2f2f; /* Slightly lighter dark background */
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        max-width: 100%;
+        width: 90%;
+        margin: 0 auto;
+        overflow: auto; /* Enable scrolling if content is larger */
     }
 
     #imageCanvas {
-        margin: 5px auto;
+        border: 1px solid #3c3c3c; /* Slightly lighter border */
+        display: block;
+        margin: 10px auto;
+        cursor: crosshair;
+        background-color: #2f2f2f;
         max-width: 100%;
+        height: auto;
     }
-}
 
-@media (max-width: 400px) {
+    .controls {
+        margin-top: 10px;
+    }
+
     .controls textarea {
-        font-size: 8px;
-        padding: 6px;
+        padding: 10px;
+        font-size: 12px;
+        margin-bottom: 10px;
+        display: block;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        border-radius: 4px;
+        border: 1px solid #444; /* Darker border for contrast */
+        background-color: #1e1e1e; /* Dark background for textarea */
+        color: #e1e1e1; /* Light text color */
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
-    .controls button {
-        padding: 6px 10px;
-        font-size: 8px;
+    .controls button,
+    #imageUpload,
+    #pasteImageBtn {
+        padding: 10px 15px;
+        font-size: 12px;
+        cursor: pointer;
+        margin: 5px;
+        border: 1px solid #444;
+        border-radius: 4px;
+        color: #e1e1e1;
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        background-color: #3d3d3d; /* Darker background for buttons */
     }
-}
 
-    </style>
+    .controls button.active,
+    .controls button:hover,
+    #pasteImageBtn:hover,
+    #imageUpload:hover {
+        background-color: #5c2a9e; /* MS Teams violet */
+        color: #ffffff;
+        border-color: #5c2a9e;
+    }
+
+    .controls .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .controls .button-group button {
+        background-color: #3d3d3d;
+    }
+
+    #imageButtonsContainer {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    #imageButtonsContainer button {
+        padding: 10px 15px;
+        margin: 5px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        color: #fff;
+        background: linear-gradient(45deg, #6c63ff, #5c2a9e); /* MS Teams violet gradient */
+        transition: background 0.3s, transform 0.3s;
+    }
+
+    #imageButtonsContainer button:hover {
+        background: linear-gradient(45deg, #5c2a9e, #3e0a4b); /* Darker violet on hover */
+        transform: scale(1.05);
+    }
+
+    #copyImageBtn {
+        background-color: #3d3d3d;
+        border-color: #444;
+        color: #e1e1e1;
+    }
+
+    #copyImageBtn:hover {
+        background-color: #5c2a9e;
+        color: #ffffff;
+        border-color: #5c2a9e;
+    }
+
+    #welcomeModal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8); /* Darker overlay */
+        color: #e1e1e1;
+        z-index: 1000;
+    }
+
+    #welcomeModal .modal-content {
+        background: #2f2f2f;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    #welcomeModal button {
+        padding: 10px 20px;
+        margin: 10px;
+        border: none;
+        border-radius: 4px;
+        background-color: #5c2a9e; /* MS Teams violet */
+        color: #ffffff;
+        cursor: pointer;
+    }
+
+    #welcomeModal button:hover {
+        background-color: #3e0a4b; /* Darker violet on hover */
+    }
+
+    @media (max-width: 1200px) {
+        .container {
+            width: 95%;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .controls textarea {
+            font-size: 10px;
+            padding: 8px;
+        }
+
+        .controls button {
+            padding: 8px 12px;
+            font-size: 10px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .controls {
+            margin-top: 5px;
+        }
+        
+        .controls button {
+            padding: 8px 12px;
+            font-size: 10px;
+        }
+
+        #imageCanvas {
+            margin: 5px auto;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .controls textarea {
+            font-size: 8px;
+            padding: 6px;
+        }
+
+        .controls button {
+            padding: 6px 10px;
+            font-size: 8px;
+        }
+    }
+</style>
 </head>
 <body>
     <div id="welcomeModal">

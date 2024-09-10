@@ -274,8 +274,8 @@ let circleCount = 1;
 
 function setCanvasSize(img) {
   const aspectRatio = img.width / img.height;
-  const maxWidth = 800;
-  const maxHeight = 600;
+  const maxWidth = 1000;
+  const maxHeight = 800;
 
   if (img.width > img.height) {
     canvas.width = Math.min(maxWidth, img.width);
@@ -632,8 +632,8 @@ function pasteImageFromClipboard() {
 
 // Initialize the canvas when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-  canvas.width = 800; // Set default width
-  canvas.height = 600; // Set default height
+  canvas.width = 1000; // Set default width
+  canvas.height = 800; // Set default height
   drawImageWithMarkup(); // Fill canvas with white background
 });
 
